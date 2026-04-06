@@ -98,7 +98,7 @@ export default function AnalyticsPage() {
 
         {/* Monthly Summary */}
         <section>
-          <MonthlySummary scores={periodScores} />
+          <MonthlySummary scores={periodScores} checkIns={checkIns || []} />
         </section>
 
         {/* Weekly Progress */}

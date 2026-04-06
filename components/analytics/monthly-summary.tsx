@@ -1,12 +1,14 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { DailyScore } from '@/lib/types/score';
+import { CheckIn } from '@/lib/types/checkin';
 import { TrendingUp, Calendar, Award, Target } from 'lucide-react';
 
 interface MonthlySummaryProps {
   scores: DailyScore[];
+  checkIns: CheckIn[];
 }
 
-export function MonthlySummary({ scores }: MonthlySummaryProps) {
+export function MonthlySummary({ scores, checkIns }: MonthlySummaryProps) {
   if (!scores || scores.length === 0) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -45,7 +47,7 @@ export function MonthlySummary({ scores }: MonthlySummaryProps) {
     current.percentage > best.percentage ? current : best
   , scores[0]);
 
-  const daysRegistered = scores.length;
+  const daysRegistered = new Set(checkIns.map((checkIn) => checkIn.date)).size;
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

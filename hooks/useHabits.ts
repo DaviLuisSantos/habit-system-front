@@ -33,6 +33,7 @@ export function useCreateHabit() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['habits'] });
+      queryClient.invalidateQueries({ queryKey: ['scores'] });
     },
   });
 }
@@ -48,6 +49,7 @@ export function useUpdateHabit() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['habits'] });
       queryClient.invalidateQueries({ queryKey: ['habits', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['scores'] });
     },
   });
 }
@@ -61,6 +63,7 @@ export function useArchiveHabit() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['habits'] });
+      queryClient.invalidateQueries({ queryKey: ['scores'] });
     },
   });
 }
