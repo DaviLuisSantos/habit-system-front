@@ -1,11 +1,14 @@
-import { useQuery } from '@tanstack/react-query';
-import { scoresApi } from '@/lib/api/scores';
+import { useQuery } from "@tanstack/react-query";
+import { scoresApi } from "@/lib/api/scores";
+import { getLocalDateString } from "@/lib/utils";
 
 export function useTodayScore() {
+  const today = getLocalDateString();
+
   return useQuery({
-    queryKey: ['scores', 'today'],
+    queryKey: ["scores", "today", today],
     queryFn: async () => {
-      const response = await scoresApi.getToday();
+      const response = await scoresApi.getToday(today);
       return response.data;
     },
   });
@@ -13,7 +16,7 @@ export function useTodayScore() {
 
 export function useScoreByDate(date: string) {
   return useQuery({
-    queryKey: ['scores', date],
+    queryKey: ["scores", date],
     queryFn: async () => {
       const response = await scoresApi.getByDate(date);
       return response.data;
@@ -24,7 +27,7 @@ export function useScoreByDate(date: string) {
 
 export function useWeeklyScores(date?: string) {
   return useQuery({
-    queryKey: ['scores', 'week', date || 'current'],
+    queryKey: ["scores", "week", date || "current"],
     queryFn: async () => {
       const response = await scoresApi.getWeekly(date);
       return response.data;

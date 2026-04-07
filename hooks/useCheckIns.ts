@@ -1,12 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { checkInsApi } from '@/lib/api/checkins';
-import { CreateCheckInDto, UpdateCheckInDto } from '@/lib/types/checkin';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { checkInsApi } from "@/lib/api/checkins";
+import { CreateCheckInDto, UpdateCheckInDto } from "@/lib/types/checkin";
+import { getLocalDateString } from "@/lib/utils";
 
 export function useTodayCheckIns() {
+  const today = getLocalDateString();
+
   return useQuery({
-    queryKey: ['checkIns', 'today'],
+    queryKey: ["checkIns", "today", today],
     queryFn: async () => {
-      const response = await checkInsApi.getToday();
+      const response = await checkInsApi.getToday(today);
       return response.data;
     },
   });
@@ -14,7 +17,7 @@ export function useTodayCheckIns() {
 
 export function useCheckInsByDateRange(startDate: string, endDate: string) {
   return useQuery({
-    queryKey: ['checkIns', startDate, endDate],
+    queryKey: ["checkIns", startDate, endDate],
     queryFn: async () => {
       const response = await checkInsApi.getByDateRange(startDate, endDate);
       return response.data;
@@ -32,8 +35,8 @@ export function useCreateCheckIn() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['checkIns'] });
-      queryClient.invalidateQueries({ queryKey: ['scores'] });
+      queryClient.invalidateQueries({ queryKey: ["checkIns"] });
+      queryClient.invalidateQueries({ queryKey: ["scores"] });
     },
   });
 }
@@ -42,13 +45,19 @@ export function useUpdateCheckIn() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateCheckInDto }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: UpdateCheckInDto;
+    }) => {
       const response = await checkInsApi.update(id, data);
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['checkIns'] });
-      queryClient.invalidateQueries({ queryKey: ['scores'] });
+      queryClient.invalidateQueries({ queryKey: ["checkIns"] });
+      queryClient.invalidateQueries({ queryKey: ["scores"] });
     },
   });
 }
