@@ -1,28 +1,43 @@
-import { eachDayOfInterval, format, parseISO, startOfWeek } from 'date-fns';
-import { DailyScore } from '@/lib/types/score';
-import { CheckIn, CheckInStatus } from '@/lib/types/checkin';
-import { FrequencyType, Habit } from '@/lib/types/habit';
+import { eachDayOfInterval, format, parseISO, startOfWeek } from "date-fns";
+import { DailyScore } from "@/lib/types/score";
+import { CheckIn, CheckInStatus } from "@/lib/types/checkin";
+import { FrequencyType, Habit } from "@/lib/types/habit";
 
-export type PeriodFilter = '7d' | '30d' | '3m';
+export type PeriodFilter = "7d" | "30d" | "3m";
 
-export function getDateRange(period: PeriodFilter): { startDate: string; endDate: string } {
+export function getDateRange(period: PeriodFilter): {
+  startDate: string;
+  endDate: string;
+} {
   const today = new Date();
-  const endDate = format(today, 'yyyy-MM-dd');
+  const endDate = format(today, "yyyy-MM-dd");
   const millisecondsPerDay = 24 * 60 * 60 * 1000;
 
   let startDate: string;
   switch (period) {
-    case '7d':
-      startDate = format(new Date(today.getTime() - 6 * millisecondsPerDay), 'yyyy-MM-dd');
+    case "7d":
+      startDate = format(
+        new Date(today.getTime() - 6 * millisecondsPerDay),
+        "yyyy-MM-dd",
+      );
       break;
-    case '30d':
-      startDate = format(new Date(today.getTime() - 29 * millisecondsPerDay), 'yyyy-MM-dd');
+    case "30d":
+      startDate = format(
+        new Date(today.getTime() - 29 * millisecondsPerDay),
+        "yyyy-MM-dd",
+      );
       break;
-    case '3m':
-      startDate = format(new Date(today.getTime() - 89 * millisecondsPerDay), 'yyyy-MM-dd');
+    case "3m":
+      startDate = format(
+        new Date(today.getTime() - 89 * millisecondsPerDay),
+        "yyyy-MM-dd",
+      );
       break;
     default:
-      startDate = format(new Date(today.getTime() - 6 * millisecondsPerDay), 'yyyy-MM-dd');
+      startDate = format(
+        new Date(today.getTime() - 6 * millisecondsPerDay),
+        "yyyy-MM-dd",
+      );
   }
 
   return { startDate, endDate };
@@ -43,30 +58,71 @@ export function isHabitExpectedOnDate(habit: Habit, date: Date): boolean {
   }
 }
 
+function normalizeCheckInStatus(
+  status: CheckIn["status"] | number | string,
+): CheckInStatus | null {
+  if (
+    status === CheckInStatus.Done ||
+    status === "Done" ||
+    status === 0 ||
+    status === 1 ||
+    status === "0" ||
+    status === "1"
+  ) {
+    return CheckInStatus.Done;
+  }
+
+  if (
+    status === CheckInStatus.Partial ||
+    status === "Partial" ||
+    status === 2 ||
+    status === "2"
+  ) {
+    return CheckInStatus.Partial;
+  }
+
+  if (
+    status === CheckInStatus.Skipped ||
+    status === "Skipped" ||
+    status === 3 ||
+    status === "3"
+  ) {
+    return CheckInStatus.Skipped;
+  }
+
+  return null;
+}
+
 export function buildDailyScores(
   habits: Habit[],
   checkIns: CheckIn[],
   startDate: string,
-  endDate: string
+  endDate: string,
 ): DailyScore[] {
   const checkInMap = new Map(
-    checkIns.map((checkIn) => [`${checkIn.date}:${checkIn.habitId}`, checkIn])
+    checkIns.map((checkIn) => [`${checkIn.date}:${checkIn.habitId}`, checkIn]),
   );
 
   return eachDayOfInterval({
     start: parseISO(startDate),
     end: parseISO(endDate),
   }).map((date) => {
-    const dateKey = format(date, 'yyyy-MM-dd');
-    const expectedHabits = habits.filter((habit) => isHabitExpectedOnDate(habit, date));
+    const dateKey = format(date, "yyyy-MM-dd");
+    const expectedHabits = habits.filter((habit) =>
+      isHabitExpectedOnDate(habit, date),
+    );
 
-    const totalPossible = expectedHabits.reduce((total, habit) => total + habit.weight, 0);
+    const totalPossible = expectedHabits.reduce(
+      (total, habit) => total + habit.weight,
+      0,
+    );
     const totalEarned = expectedHabits.reduce((total, habit) => {
       const checkIn = checkInMap.get(`${dateKey}:${habit.id}`);
+      const status = checkIn ? normalizeCheckInStatus(checkIn.status) : null;
 
       if (!checkIn) return total;
-      if (checkIn.status === CheckInStatus.Done) return total + habit.weight;
-      if (checkIn.status === CheckInStatus.Partial) return total + habit.partialWeight;
+      if (status === CheckInStatus.Done) return total + habit.weight;
+      if (status === CheckInStatus.Partial) return total + habit.partialWeight;
       return total;
     }, 0);
 
@@ -74,7 +130,8 @@ export function buildDailyScores(
       date: dateKey,
       totalPossible,
       totalEarned,
-      percentage: totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0,
+      percentage:
+        totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0,
       calculatedAt: new Date().toISOString(),
     };
   });
@@ -86,7 +143,7 @@ export function groupDailyScoresByWeek(scores: DailyScore[]) {
   scores.forEach((score) => {
     const date = parseISO(score.date);
     const weekStart = startOfWeek(date, { weekStartsOn: 0 });
-    const weekKey = format(weekStart, 'yyyy-MM-dd');
+    const weekKey = format(weekStart, "yyyy-MM-dd");
 
     if (!weekMap.has(weekKey)) {
       weekMap.set(weekKey, []);
@@ -99,7 +156,8 @@ export function groupDailyScoresByWeek(scores: DailyScore[]) {
     .map(([weekKey, weekScores]) => {
       const weekStart = parseISO(weekKey);
       const avgPercentage = Math.round(
-        weekScores.reduce((acc, score) => acc + score.percentage, 0) / weekScores.length
+        weekScores.reduce((acc, score) => acc + score.percentage, 0) /
+          weekScores.length,
       );
 
       return {

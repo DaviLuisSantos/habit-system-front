@@ -1,49 +1,77 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import { AppLayout } from '@/components/layout/app-layout';
-import { MonthlySummary } from '@/components/analytics/monthly-summary';
-import { WeeklyProgress } from '@/components/analytics/weekly-progress';
-import { HabitStats } from '@/components/analytics/habit-stats';
-import { LoadingPage } from '@/components/shared/loading';
-import { ErrorState } from '@/components/shared/error-state';
-import { Button } from '@/components/ui/button';
-import { useHabits } from '@/hooks/useHabits';
-import { useCheckInsByDateRange } from '@/hooks/useCheckIns';
-import { buildDailyScores, getDateRange, PeriodFilter } from '@/lib/utils/analytics';
-import { ProtectedRoute } from '@/components/shared/protected-route';
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { eachDayOfInterval, format, parseISO } from "date-fns";
+import { AppLayout } from "@/components/layout/app-layout";
+import { MonthlySummary } from "@/components/analytics/monthly-summary";
+import { WeeklyProgress } from "@/components/analytics/weekly-progress";
+import { HabitStats } from "@/components/analytics/habit-stats";
+import { LoadingPage } from "@/components/shared/loading";
+import { ErrorState } from "@/components/shared/error-state";
+import { Button } from "@/components/ui/button";
+import { useHabits } from "@/hooks/useHabits";
+import { useCheckInsByDateRange } from "@/hooks/useCheckIns";
+import { getDateRange, PeriodFilter } from "@/lib/utils/analytics";
+import { ProtectedRoute } from "@/components/shared/protected-route";
+import { scoresApi } from "@/lib/api/scores";
 
 const PERIOD_OPTIONS: { value: PeriodFilter; label: string }[] = [
-  { value: '7d', label: '7 dias' },
-  { value: '30d', label: '30 dias' },
-  { value: '3m', label: '3 meses' },
+  { value: "7d", label: "7 dias" },
+  { value: "30d", label: "30 dias" },
+  { value: "3m", label: "3 meses" },
 ];
 
 export default function AnalyticsPage() {
-  const [period, setPeriod] = useState<PeriodFilter>('30d');
+  const [period, setPeriod] = useState<PeriodFilter>("30d");
   const { startDate, endDate } = getDateRange(period);
 
-  const { 
-    data: habits, 
-    isLoading: habitsLoading, 
+  const {
+    data: habits,
+    isLoading: habitsLoading,
     error: habitsError,
-    refetch: refetchHabits 
+    refetch: refetchHabits,
   } = useHabits(true);
 
-  const { 
-    data: checkIns, 
-    isLoading: checkInsLoading, 
+  const {
+    data: checkIns,
+    isLoading: checkInsLoading,
     error: checkInsError,
-    refetch: refetchCheckIns 
+    refetch: refetchCheckIns,
   } = useCheckInsByDateRange(startDate, endDate);
 
-  const periodScores = useMemo(() => {
-    if (!habits || !checkIns) return [];
-    return buildDailyScores(habits, checkIns, startDate, endDate);
-  }, [habits, checkIns, startDate, endDate]);
+  const {
+    data: periodScores,
+    isLoading: scoresLoading,
+    error: scoresError,
+    refetch: refetchScores,
+  } = useQuery({
+    queryKey: ["scores", "range", startDate, endDate],
+    queryFn: async () => {
+      const dates = eachDayOfInterval({
+        start: parseISO(startDate),
+        end: parseISO(endDate),
+      }).map((date) => format(date, "yyyy-MM-dd"));
 
-  const isLoading = habitsLoading || checkInsLoading;
-  const error = habitsError || checkInsError;
+      const responses = await Promise.allSettled(
+        dates.map((date) => scoresApi.getByDate(date)),
+      );
+      return responses
+        .filter(
+          (
+            result,
+          ): result is PromiseFulfilledResult<
+            Awaited<ReturnType<typeof scoresApi.getByDate>>
+          > => result.status === "fulfilled",
+        )
+        .map((result) => result.value.data);
+    },
+  });
+
+  const safePeriodScores = useMemo(() => periodScores || [], [periodScores]);
+
+  const isLoading = habitsLoading || checkInsLoading || scoresLoading;
+  const error = habitsError || checkInsError || scoresError;
 
   if (isLoading) {
     return (
@@ -65,6 +93,7 @@ export default function AnalyticsPage() {
             onRetry={() => {
               refetchHabits();
               refetchCheckIns();
+              refetchScores();
             }}
           />
         </div>
@@ -80,15 +109,17 @@ export default function AnalyticsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-foreground">Análise</h1>
-              <p className="text-muted-foreground">Acompanhe seu progresso ao longo do tempo</p>
+              <p className="text-muted-foreground">
+                Acompanhe seu progresso ao longo do tempo
+              </p>
             </div>
-            
+
             {/* Period Filter */}
             <div className="flex gap-2">
               {PERIOD_OPTIONS.map((option) => (
                 <Button
                   key={option.value}
-                  variant={period === option.value ? 'default' : 'outline'}
+                  variant={period === option.value ? "default" : "outline"}
                   size="sm"
                   onClick={() => setPeriod(option.value)}
                 >
@@ -100,12 +131,15 @@ export default function AnalyticsPage() {
 
           {/* Monthly Summary */}
           <section>
-            <MonthlySummary scores={periodScores} checkIns={checkIns || []} />
+            <MonthlySummary
+              scores={safePeriodScores}
+              checkIns={checkIns || []}
+            />
           </section>
 
           {/* Weekly Progress */}
           <section>
-            <WeeklyProgress scores={periodScores} />
+            <WeeklyProgress scores={safePeriodScores} />
           </section>
 
           {/* Habit Stats */}
