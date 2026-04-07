@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { Check, Zap, SkipForward, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Habit, FrequencyType } from '@/lib/types/habit';
-import { CheckIn, CheckInStatus } from '@/lib/types/checkin';
-import { cn } from '@/lib/utils';
+import { Check, Zap, SkipForward, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Habit, FrequencyType } from "@/lib/types/habit";
+import { CheckIn, CheckInStatus } from "@/lib/types/checkin";
+import { cn } from "@/lib/utils";
 
 interface HabitCardProps {
   habit: Habit;
@@ -18,14 +18,14 @@ interface HabitCardProps {
 function getFrequencyLabel(habit: Habit): string {
   switch (habit.frequencyType) {
     case FrequencyType.Daily:
-      return 'Diário';
+      return "Diário";
     case FrequencyType.SpecificDays:
-      const days = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
-      return habit.frequencyDays?.map(d => days[d]).join(', ') || '';
+      const days = ["D", "S", "T", "Q", "Q", "S", "S"];
+      return habit.frequencyDays?.map((d) => days[d]).join(", ") || "";
     case FrequencyType.XTimesWeek:
       return `${habit.frequencyTimes}x/semana`;
     default:
-      return '';
+      return "";
   }
 }
 
@@ -43,85 +43,106 @@ function getStatusBadge(status: CheckInStatus) {
 }
 
 function getCardStyle(checkIn?: CheckIn): string {
-  if (!checkIn) return 'border-border';
+  if (!checkIn) return "border-border";
   switch (checkIn.status) {
     case CheckInStatus.Done:
-      return 'border-green-500/40 bg-green-500/10';
+      return "border-green-500/40 bg-green-500/10";
     case CheckInStatus.Partial:
-      return 'border-yellow-500/40 bg-yellow-500/10';
+      return "border-yellow-500/40 bg-yellow-500/10";
     case CheckInStatus.Skipped:
-      return 'border-border bg-muted/50';
+      return "border-border bg-muted/50";
     default:
-      return 'border-border';
+      return "border-border";
   }
 }
 
-export function HabitCard({ habit, checkIn, onCheckIn, isLoading }: HabitCardProps) {
+export function HabitCard({
+  habit,
+  checkIn,
+  onCheckIn,
+  isLoading,
+}: HabitCardProps) {
   const hasCheckIn = !!checkIn;
 
   return (
-    <Card className={cn('transition-colors', getCardStyle(checkIn))}>
+    <Card className={cn("transition-colors", getCardStyle(checkIn))}>
       <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-medium text-foreground truncate">{habit.name}</h3>
+              <h3 className="font-medium text-foreground truncate">
+                {habit.name}
+              </h3>
               {hasCheckIn && getStatusBadge(checkIn.status)}
             </div>
-            
+
             {habit.description && (
               <p className="text-sm text-muted-foreground truncate mb-2">
                 {habit.description}
               </p>
             )}
-            
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+
+            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
-                <span className="font-medium text-foreground">Peso:</span> {habit.weight}
+                <span className="font-medium text-foreground">Peso:</span>{" "}
+                {habit.weight}
               </span>
               <span className="flex items-center gap-1">
-                <span className="font-medium text-foreground">Parcial:</span> {habit.partialWeight}
+                <span className="font-medium text-foreground">Parcial:</span>{" "}
+                {habit.partialWeight}
               </span>
               <Badge variant="outline" className="text-xs">
                 {getFrequencyLabel(habit)}
               </Badge>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2 shrink-0">
+
+          <div className="grid grid-cols-3 gap-2 sm:flex sm:shrink-0">
             {isLoading ? (
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground sm:h-8 sm:w-8" />
             ) : (
               <>
                 <Button
-                  size="icon"
-                  variant={checkIn?.status === CheckInStatus.Done ? 'success' : 'outline'}
+                  size="default"
+                  variant={
+                    checkIn?.status === CheckInStatus.Done
+                      ? "success"
+                      : "outline"
+                  }
                   onClick={() => onCheckIn(CheckInStatus.Done)}
                   disabled={hasCheckIn}
                   title="Feito"
-                  className="h-10 w-10"
+                  className="h-10 !w-full sm:!w-10 sm:px-0"
                 >
                   <Check className="h-5 w-5" />
                 </Button>
-                
+
                 <Button
-                  size="icon"
-                  variant={checkIn?.status === CheckInStatus.Partial ? 'warning' : 'outline'}
+                  size="default"
+                  variant={
+                    checkIn?.status === CheckInStatus.Partial
+                      ? "warning"
+                      : "outline"
+                  }
                   onClick={() => onCheckIn(CheckInStatus.Partial)}
                   disabled={hasCheckIn}
                   title="Parcial"
-                  className="h-10 w-10"
+                  className="h-10 !w-full sm:!w-10 sm:px-0"
                 >
                   <Zap className="h-5 w-5" />
                 </Button>
-                
+
                 <Button
-                  size="icon"
-                  variant={checkIn?.status === CheckInStatus.Skipped ? 'secondary' : 'ghost'}
+                  size="default"
+                  variant={
+                    checkIn?.status === CheckInStatus.Skipped
+                      ? "secondary"
+                      : "ghost"
+                  }
                   onClick={() => onCheckIn(CheckInStatus.Skipped)}
                   disabled={hasCheckIn}
                   title="Pular"
-                  className="h-10 w-10"
+                  className="h-10 !w-full sm:!w-10 sm:px-0"
                 >
                   <SkipForward className="h-5 w-5" />
                 </Button>
