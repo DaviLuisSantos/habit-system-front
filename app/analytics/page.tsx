@@ -16,15 +16,18 @@ import { getDateRange, PeriodFilter } from "@/lib/utils/analytics";
 import { ProtectedRoute } from "@/components/shared/protected-route";
 import { scoresApi } from "@/lib/api/scores";
 
-const PERIOD_OPTIONS: { value: PeriodFilter; label: string }[] = [
-  { value: "7d", label: "7 dias" },
-  { value: "30d", label: "30 dias" },
-  { value: "3m", label: "3 meses" },
+const PERIOD_OPTIONS: { value: PeriodFilter; label: string; days: number }[] = [
+  { value: "7d", label: "7 dias", days: 7 },
+  { value: "30d", label: "30 dias", days: 30 },
+  { value: "3m", label: "3 meses", days: 90 },
 ];
 
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState<PeriodFilter>("30d");
   const { startDate, endDate } = getDateRange(period);
+
+  const currentPeriod = PERIOD_OPTIONS.find(p => p.value === period);
+  const periodDays = currentPeriod?.days || 30;
 
   const {
     data: habits,
@@ -137,9 +140,9 @@ export default function AnalyticsPage() {
             />
           </section>
 
-          {/* Weekly Progress */}
+          {/* Daily Progress Chart */}
           <section>
-            <WeeklyProgress scores={safePeriodScores} />
+            <WeeklyProgress scores={safePeriodScores} periodDays={periodDays} />
           </section>
 
           {/* Habit Stats */}
