@@ -26,10 +26,13 @@ export function useScoreByDate(date: string) {
 }
 
 export function useWeeklyScores(date?: string) {
+  const today = getLocalDateString();
+  const targetDate = date || today;
+
   return useQuery({
-    queryKey: ["scores", "week", date || "current"],
+    queryKey: ["scores", "week", targetDate, today],
     queryFn: async () => {
-      const response = await scoresApi.getWeekly(date);
+      const response = await scoresApi.getWeekly(targetDate, today);
       return response.data;
     },
   });

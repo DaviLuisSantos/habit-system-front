@@ -8,8 +8,8 @@ export const scoresApi = {
 
   getByDate: (date: string) => apiClient.get<DailyScore>(`/api/scores/${date}`),
 
-  getWeekly: (date?: string) => {
-    const params = date ? `?date=${date}` : "";
-    return apiClient.get<DailyScore[]>(`/api/scores/week${params}`);
+  getWeekly: (date = getLocalDateString(), today = getLocalDateString()) => {
+    const params = new URLSearchParams({ date, today });
+    return apiClient.get<DailyScore[]>(`/api/scores/week?${params.toString()}`);
   },
 };
