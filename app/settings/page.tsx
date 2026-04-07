@@ -4,30 +4,78 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { GitBranch, Heart, Monitor, Moon, Sun } from 'lucide-react';
+import { GitBranch, Heart, Monitor, Moon, Sun, User, LogOut } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { ProtectedRoute } from '@/components/shared/protected-route';
+import { useAuth } from '@/lib/contexts/auth-context';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const currentTheme = theme ?? 'system';
+  const { user, logout } = useAuth();
 
   return (
-    <AppLayout>
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
-          <p className="text-muted-foreground">Sobre o app e configurações</p>
-        </div>
+    <ProtectedRoute>
+      <AppLayout>
+        <div className="max-w-2xl mx-auto space-y-6">
+          {/* Header */}
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
+            <p className="text-muted-foreground">Sobre o app e configurações</p>
+          </div>
 
-        {/* Theme */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Tema</CardTitle>
-            <CardDescription>Escolha entre claro, escuro ou automático pelo sistema.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
+          {/* User Profile */}
+          {user && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Perfil do Usuário</CardTitle>
+                <CardDescription>Informações da sua conta</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
+                    <User className="h-8 w-8 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-lg font-semibold text-foreground">{user.name}</p>
+                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-border space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Timezone</span>
+                    <span className="text-foreground">{user.timezone}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Membro desde</span>
+                    <span className="text-foreground">
+                      {format(new Date(user.createdAt), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="w-full mt-4"
+                  onClick={logout}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sair da Conta
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Theme */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Tema</CardTitle>
+              <CardDescription>Escolha entre claro, escuro ou automático pelo sistema.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
                 size="sm"
@@ -94,6 +142,10 @@ export default function SettingsPage() {
             <ul className="space-y-3">
               <li className="flex items-center gap-3 text-foreground">
                 <span className="text-green-400">✓</span>
+                <span>Autenticação JWT</span>
+              </li>
+              <li className="flex items-center gap-3 text-foreground">
+                <span className="text-green-400">✓</span>
                 <span>Criar e gerenciar hábitos diários</span>
               </li>
               <li className="flex items-center gap-3 text-foreground">
@@ -115,10 +167,6 @@ export default function SettingsPage() {
               <li className="flex items-center gap-3 text-foreground">
                 <span className="text-green-400">✓</span>
                 <span>Tema claro e escuro</span>
-              </li>
-              <li className="flex items-center gap-3 text-muted-foreground">
-                <span>○</span>
-                <span>Autenticação (em breve)</span>
               </li>
               <li className="flex items-center gap-3 text-muted-foreground">
                 <span>○</span>
@@ -154,5 +202,6 @@ export default function SettingsPage() {
         </div>
       </div>
     </AppLayout>
+    </ProtectedRoute>
   );
 }

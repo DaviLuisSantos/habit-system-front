@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { useHabits } from '@/hooks/useHabits';
 import { useCheckInsByDateRange } from '@/hooks/useCheckIns';
 import { buildDailyScores, getDateRange, PeriodFilter } from '@/lib/utils/analytics';
+import { ProtectedRoute } from '@/components/shared/protected-route';
 
 const PERIOD_OPTIONS: { value: PeriodFilter; label: string }[] = [
   { value: '7d', label: '7 dias' },
@@ -72,45 +73,47 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <AppLayout>
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Análise</h1>
-            <p className="text-muted-foreground">Acompanhe seu progresso ao longo do tempo</p>
+    <ProtectedRoute>
+      <AppLayout>
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Análise</h1>
+              <p className="text-muted-foreground">Acompanhe seu progresso ao longo do tempo</p>
+            </div>
+            
+            {/* Period Filter */}
+            <div className="flex gap-2">
+              {PERIOD_OPTIONS.map((option) => (
+                <Button
+                  key={option.value}
+                  variant={period === option.value ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPeriod(option.value)}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
           </div>
-          
-          {/* Period Filter */}
-          <div className="flex gap-2">
-            {PERIOD_OPTIONS.map((option) => (
-              <Button
-                key={option.value}
-                variant={period === option.value ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setPeriod(option.value)}
-              >
-                {option.label}
-              </Button>
-            ))}
-          </div>
+
+          {/* Monthly Summary */}
+          <section>
+            <MonthlySummary scores={periodScores} checkIns={checkIns || []} />
+          </section>
+
+          {/* Weekly Progress */}
+          <section>
+            <WeeklyProgress scores={periodScores} />
+          </section>
+
+          {/* Habit Stats */}
+          <section>
+            <HabitStats habits={habits || []} checkIns={checkIns || []} />
+          </section>
         </div>
-
-        {/* Monthly Summary */}
-        <section>
-          <MonthlySummary scores={periodScores} checkIns={checkIns || []} />
-        </section>
-
-        {/* Weekly Progress */}
-        <section>
-          <WeeklyProgress scores={periodScores} />
-        </section>
-
-        {/* Habit Stats */}
-        <section>
-          <HabitStats habits={habits || []} checkIns={checkIns || []} />
-        </section>
-      </div>
-    </AppLayout>
+      </AppLayout>
+    </ProtectedRoute>
   );
 }

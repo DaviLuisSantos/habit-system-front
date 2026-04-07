@@ -13,6 +13,7 @@ import { useHabit, useUpdateHabit } from '@/hooks/useHabits';
 import { useToast } from '@/components/ui/toast';
 import { HabitFormData } from '@/lib/validations/habit';
 import { UpdateHabitDto } from '@/lib/types/habit';
+import { ProtectedRoute } from '@/components/shared/protected-route';
 
 interface EditHabitPageProps {
   params: Promise<{ id: string }>;
@@ -57,60 +58,66 @@ export default function EditHabitPage({ params }: EditHabitPageProps) {
 
   if (isLoading) {
     return (
-      <AppLayout>
-        <div className="max-w-2xl mx-auto">
-          <LoadingCard />
-        </div>
-      </AppLayout>
+      <ProtectedRoute>
+        <AppLayout>
+          <div className="max-w-2xl mx-auto">
+            <LoadingCard />
+          </div>
+        </AppLayout>
+      </ProtectedRoute>
     );
   }
 
   if (error || !habit) {
     return (
-      <AppLayout>
-        <div className="max-w-2xl mx-auto">
-          <ErrorState
-            title="Erro ao carregar hábito"
-            message="Não foi possível carregar os dados do hábito."
-            onRetry={() => refetch()}
-          />
-        </div>
-      </AppLayout>
+      <ProtectedRoute>
+        <AppLayout>
+          <div className="max-w-2xl mx-auto">
+            <ErrorState
+              title="Erro ao carregar hábito"
+              message="Não foi possível carregar os dados do hábito."
+              onRetry={() => refetch()}
+            />
+          </div>
+        </AppLayout>
+      </ProtectedRoute>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-          <h1 className="text-2xl font-bold text-foreground">Editar Hábito</h1>
-          <p className="text-muted-foreground">Modifique os detalhes do hábito</p>
-        </div>
+    <ProtectedRoute>
+      <AppLayout>
+        <div className="max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="mb-6">
+            <Button
+              variant="ghost"
+              onClick={() => router.back()}
+              className="mb-4"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+            <h1 className="text-2xl font-bold text-foreground">Editar Hábito</h1>
+            <p className="text-muted-foreground">Modifique os detalhes do hábito</p>
+          </div>
 
-        {/* Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Detalhes do Hábito</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <HabitForm
-              habit={habit}
-              onSubmit={handleSubmit}
-              onCancel={() => router.back()}
-              isLoading={updateHabit.isPending}
-            />
-          </CardContent>
-        </Card>
-      </div>
-    </AppLayout>
+          {/* Form */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Detalhes do Hábito</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <HabitForm
+                habit={habit}
+                onSubmit={handleSubmit}
+                onCancel={() => router.back()}
+                isLoading={updateHabit.isPending}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
+    </ProtectedRoute>
   );
 }

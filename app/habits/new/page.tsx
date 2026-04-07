@@ -10,6 +10,7 @@ import { useCreateHabit } from '@/hooks/useHabits';
 import { useToast } from '@/components/ui/toast';
 import { HabitFormData } from '@/lib/validations/habit';
 import { CreateHabitDto } from '@/lib/types/habit';
+import { ProtectedRoute } from '@/components/shared/protected-route';
 
 export default function NewHabitPage() {
   const router = useRouter();
@@ -47,36 +48,38 @@ export default function NewHabitPage() {
   };
 
   return (
-    <AppLayout>
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-          <h1 className="text-2xl font-bold text-foreground">Novo Hábito</h1>
-          <p className="text-muted-foreground">Crie um novo hábito para acompanhar</p>
-        </div>
+    <ProtectedRoute>
+      <AppLayout>
+        <div className="max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="mb-6">
+            <Button
+              variant="ghost"
+              onClick={() => router.back()}
+              className="mb-4"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+            <h1 className="text-2xl font-bold text-foreground">Novo Hábito</h1>
+            <p className="text-muted-foreground">Crie um novo hábito para acompanhar</p>
+          </div>
 
-        {/* Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Detalhes do Hábito</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <HabitForm
-              onSubmit={handleSubmit}
-              onCancel={() => router.back()}
-              isLoading={createHabit.isPending}
-            />
-          </CardContent>
-        </Card>
-      </div>
-    </AppLayout>
+          {/* Form */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Detalhes do Hábito</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <HabitForm
+                onSubmit={handleSubmit}
+                onCancel={() => router.back()}
+                isLoading={createHabit.isPending}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
+    </ProtectedRoute>
   );
 }

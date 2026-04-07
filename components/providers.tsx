@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { ToastProvider } from '@/components/ui/toast';
 import { PwaRegister } from '@/components/pwa/register-sw';
 import { InstallBanner } from '@/components/pwa/install-banner';
+import { AuthProvider } from '@/lib/contexts/auth-context';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -23,11 +24,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <QueryClientProvider client={queryClient}>
-        <ToastProvider>
-          <PwaRegister />
-          <InstallBanner />
-          {children}
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <PwaRegister />
+            <InstallBanner />
+            {children}
+          </ToastProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );
