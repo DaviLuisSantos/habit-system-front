@@ -109,7 +109,7 @@ export default function SettingsPage() {
           <CardHeader>
             <div className="flex items-center gap-3">
               <img
-                src="/icone.png"
+                src="/icone.svg"
                 alt="Arco"
                 className="w-12 h-12 rounded-xl"
               />
