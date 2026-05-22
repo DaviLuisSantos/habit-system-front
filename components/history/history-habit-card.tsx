@@ -34,12 +34,9 @@ function getFrequencyLabel(habit: Habit): string {
 }
 
 function StatusBadge({ status }: { status: CheckInStatus }) {
-  const map: Record<CheckInStatus, JSX.Element> = {
-    [CheckInStatus.Done]:    <Badge variant="success">Feito</Badge>,
-    [CheckInStatus.Partial]: <Badge variant="warning">Parcial</Badge>,
-    [CheckInStatus.Skipped]: <Badge variant="secondary">Pulado</Badge>,
-  };
-  return map[status];
+  if (status === CheckInStatus.Done)    return <Badge variant="success">Feito</Badge>;
+  if (status === CheckInStatus.Partial) return <Badge variant="warning">Parcial</Badge>;
+  return <Badge variant="secondary">Pulado</Badge>;
 }
 
 function cardBorder(checkIn?: CheckIn): string {
