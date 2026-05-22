@@ -11,11 +11,9 @@ export const checkInsApi = {
       `/api/checkins?startDate=${startDate}&endDate=${endDate}`,
     ),
 
+  // Envia data exatamente como fornecida no DTO (sem sobrescrever com hoje)
   create: (data: CreateCheckInDto) =>
-    apiClient.post<CheckIn>("/api/checkins", {
-      ...data,
-      date: getLocalDateString(),
-    }),
+    apiClient.post<CheckIn>("/api/checkins", data),
 
   update: (id: string, data: UpdateCheckInDto) =>
     apiClient.put<CheckIn>(`/api/checkins/${id}`, data),

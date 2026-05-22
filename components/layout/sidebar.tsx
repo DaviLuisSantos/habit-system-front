@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ListTodo, BarChart3, Settings, LogOut, User } from 'lucide-react';
+import { Home, ListTodo, BarChart3, CalendarDays, Settings, LogOut, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/habits', label: 'Hábitos', icon: ListTodo },
   { href: '/analytics', label: 'Análise', icon: BarChart3 },
+  { href: '/history', label: 'Histórico', icon: CalendarDays },
   { href: '/settings', label: 'Config', icon: Settings },
 ];
 

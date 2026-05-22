@@ -26,6 +26,20 @@ export function useCheckInsByDateRange(startDate: string, endDate: string) {
   });
 }
 
+export function useMonthCheckIns(year: number, month: number) {
+  const startDate = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const endDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+  return useQuery({
+    queryKey: ["checkIns", "month", year, month],
+    queryFn: async () => {
+      const response = await checkInsApi.getByDateRange(startDate, endDate);
+      return response.data;
+    },
+  });
+}
+
 export function useCreateCheckIn() {
   const queryClient = useQueryClient();
 
