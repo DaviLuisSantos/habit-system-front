@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   title: "Arco",
   description: "Acompanhe seus hábitos e check-ins diários.",
   manifest: '/manifest.webmanifest',
+  icons: {
+    icon: '/icone.svg',
+    shortcut: '/icone.svg',
+    apple: '/icone.svg',
+  },
   appleWebApp: {
     capable: true,
     title: 'Arco',
