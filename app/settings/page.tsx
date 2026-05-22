@@ -108,11 +108,13 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-xl">H</span>
-              </div>
+              <img
+                src="/icone.png"
+                alt="Arco"
+                className="w-12 h-12 rounded-xl"
+              />
               <div>
-                <CardTitle>Habit System</CardTitle>
+                <CardTitle>Arco</CardTitle>
                 <CardDescription>Sistema de rastreamento de hábitos</CardDescription>
               </div>
             </div>
@@ -120,7 +122,7 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between py-2 border-b border-border">
               <span className="text-muted-foreground">Versão</span>
-              <Badge variant="secondary">1.0.0</Badge>
+              <Badge variant="secondary">1.2.0</Badge>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-border">
               <span className="text-muted-foreground">Frontend</span>

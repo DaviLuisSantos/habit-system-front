@@ -2,25 +2,21 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Habit System',
-    short_name: 'Habit System',
+    name: 'Arco',
+    short_name: 'Arco',
     description: 'Acompanhe seus hábitos e check-ins diários.',
     start_url: '/dashboard',
     scope: '/',
     display: 'standalone',
     orientation: 'portrait',
-    background_color: '#ffffff',
-    theme_color: '#3b82f6',
+    background_color: '#0a1628',
+    theme_color: '#0a1628',
     icons: [
       {
-        src: '/icon',
+        src: '/icone.png',
         sizes: '512x512',
         type: 'image/png',
-      },
-      {
-        src: '/apple-icon',
-        sizes: '180x180',
-        type: 'image/png',
+        purpose: 'any maskable',
       },
     ],
   };

@@ -14,18 +14,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Habit System - Track Your Daily Habits",
-  description: "A simple and effective habit tracking system",
+  title: "Arco",
+  description: "Acompanhe seus hábitos e check-ins diários.",
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
-    title: 'Habit System',
-    statusBarStyle: 'default',
+    title: 'Arco',
+    statusBarStyle: 'black-translucent',
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#3b82f6',
+  themeColor: '#0a1628',
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',

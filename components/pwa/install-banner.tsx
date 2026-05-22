@@ -77,7 +77,7 @@ export function InstallBanner() {
       )}
     >
       <div className="rounded-2xl border border-border bg-card/95 p-4 shadow-2xl backdrop-blur">
-        <p className="text-sm font-medium text-foreground">Habit System no celular</p>
+        <p className="text-sm font-medium text-foreground">Arco no celular</p>
         <p className="mt-1 text-sm text-muted-foreground">{message}</p>
         <div className="mt-3 flex gap-2">
           {deferredPrompt && (
