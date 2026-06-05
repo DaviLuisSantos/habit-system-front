@@ -6,6 +6,12 @@ import {
   UserProfile,
   RefreshRequest,
   RefreshResponse,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  VerifyEmailRequest,
+  ChangePasswordRequest,
+  DeleteAccountRequest,
+  PlanInfo,
 } from '../types/auth';
 
 class AuthService {
@@ -46,6 +52,35 @@ class AuthService {
     });
 
     this.setTokens(response.data.accessToken, response.data.refreshToken);
+    return response.data;
+  }
+
+  async forgotPassword(data: ForgotPasswordRequest): Promise<void> {
+    await apiClient.post('/api/auth/forgot-password', data);
+  }
+
+  async resetPassword(data: ResetPasswordRequest): Promise<void> {
+    await apiClient.post('/api/auth/reset-password', data);
+  }
+
+  async verifyEmail(data: VerifyEmailRequest): Promise<void> {
+    await apiClient.post('/api/auth/verify-email', data);
+  }
+
+  async resendVerification(): Promise<void> {
+    await apiClient.post('/api/auth/resend-verification', {});
+  }
+
+  async changePassword(data: ChangePasswordRequest): Promise<void> {
+    await apiClient.put('/api/account/password', data);
+  }
+
+  async deleteAccount(data: DeleteAccountRequest): Promise<void> {
+    await apiClient.delete('/api/account', { data });
+  }
+
+  async getPlan(): Promise<PlanInfo> {
+    const response = await apiClient.get<PlanInfo>('/api/account/plan');
     return response.data;
   }
 

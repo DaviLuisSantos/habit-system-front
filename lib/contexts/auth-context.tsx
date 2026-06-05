@@ -10,6 +10,7 @@ interface AuthContextData {
   login: (data: LoginRequest) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -37,26 +38,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }
 
+  async function refreshUser() {
+    try {
+      if (authService.isAuthenticated()) {
+        const userData = await authService.getCurrentUser();
+        setUser(userData);
+      }
+    } catch (error) {
+      console.error('Failed to refresh user', error);
+    }
+  }
+
   async function login(data: LoginRequest) {
-    const response = await authService.login(data);
-    setUser({
-      userId: response.userId,
-      email: response.email,
-      name: response.name,
-      timezone: 'America/Sao_Paulo',
-      createdAt: new Date().toISOString(),
-    });
+    await authService.login(data);
+    // Fetch full profile so plan + isEmailVerified are accurate
+    const userData = await authService.getCurrentUser();
+    setUser(userData);
   }
 
   async function register(data: RegisterRequest) {
-    const response = await authService.register(data);
-    setUser({
-      userId: response.userId,
-      email: response.email,
-      name: response.name,
-      timezone: data.timezone || 'America/Sao_Paulo',
-      createdAt: new Date().toISOString(),
-    });
+    await authService.register(data);
+    // Fetch full profile so plan + isEmailVerified are accurate
+    const userData = await authService.getCurrentUser();
+    setUser(userData);
   }
 
   function logout() {
@@ -75,6 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         register,
         logout,
+        refreshUser,
         isAuthenticated: !!user,
       }}
     >
