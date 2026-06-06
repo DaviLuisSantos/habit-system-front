@@ -79,9 +79,7 @@ export default function AnalyticsPage() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="max-w-4xl mx-auto">
-          <LoadingPage />
-        </div>
+        <LoadingPage />
       </AppLayout>
     );
   }
@@ -89,8 +87,7 @@ export default function AnalyticsPage() {
   if (error) {
     return (
       <AppLayout>
-        <div className="max-w-4xl mx-auto">
-          <ErrorState
+        <ErrorState
             title="Erro ao carregar análises"
             message="Não foi possível carregar os dados de análise."
             onRetry={() => {
@@ -99,7 +96,6 @@ export default function AnalyticsPage() {
               refetchScores();
             }}
           />
-        </div>
       </AppLayout>
     );
   }
@@ -107,7 +103,7 @@ export default function AnalyticsPage() {
   return (
     <ProtectedRoute>
       <AppLayout>
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>

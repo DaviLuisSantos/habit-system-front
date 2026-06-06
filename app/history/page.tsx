@@ -46,7 +46,7 @@ export default function HistoryPage() {
   return (
     <ProtectedRoute>
       <AppLayout>
-        <div className="max-w-5xl mx-auto space-y-6">
+        <div className="space-y-6">
           {/* Título */}
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
@@ -65,10 +65,10 @@ export default function HistoryPage() {
               onRetry={() => refetchHabits()}
             />
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
 
               {/* ── Calendário ── */}
-              <Card>
+              <Card className="lg:col-span-2">
                 <CardContent className="p-4">
                   {isCalendarLoading ? (
                     <div className="flex items-center justify-center h-56">
@@ -89,7 +89,7 @@ export default function HistoryPage() {
               </Card>
 
               {/* ── Painel do dia ── */}
-              <div>
+              <div className="lg:col-span-3">
                 {selectedDate ? (
                   <DayPanel
                     key={selectedDate}   /* força remount ao trocar de dia */
