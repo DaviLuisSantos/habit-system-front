@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { authService } from '@/lib/api/auth';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -42,8 +43,15 @@ function ResetPasswordForm() {
       await authService.resetPassword({ token, newPassword: password });
       setSuccess(true);
       setTimeout(() => router.push('/login'), 3000);
-    } catch {
-      setError('Link inválido ou expirado. Solicite um novo link.');
+    } catch (err) {
+      setError(
+        getErrorMessage(err, {
+          400: 'Link inválido ou expirado. Solicite um novo link.',
+          401: 'Link inválido ou expirado. Solicite um novo link.',
+          404: 'Link inválido ou expirado. Solicite um novo link.',
+          validation: 'Link inválido ou expirado. Solicite um novo link.',
+        }),
+      );
     } finally {
       setLoading(false);
     }

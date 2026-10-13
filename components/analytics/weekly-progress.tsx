@@ -62,7 +62,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
       <p className="font-medium text-foreground mb-1 capitalize">{formattedDate}</p>
       {data.hasData ? (
         <p className="text-sm text-muted-foreground">
-          Score: <span className="font-semibold text-primary">{data.percentage}%</span>
+          Pontuação: <span className="font-semibold text-primary">{data.percentage}%</span>
         </p>
       ) : (
         <p className="text-sm text-muted-foreground">Sem dados registrados</p>

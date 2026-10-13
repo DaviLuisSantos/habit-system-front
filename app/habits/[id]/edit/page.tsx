@@ -14,6 +14,7 @@ import { useToast } from '@/components/ui/toast';
 import { HabitFormData } from '@/lib/validations/habit';
 import { UpdateHabitDto } from '@/lib/types/habit';
 import { ProtectedRoute } from '@/components/shared/protected-route';
+import { getErrorMessage } from '@/lib/api/errors';
 
 interface EditHabitPageProps {
   params: Promise<{ id: string }>;
@@ -47,11 +48,11 @@ export default function EditHabitPage({ params }: EditHabitPageProps) {
       });
       
       router.push('/habits');
-    } catch {
+    } catch (err) {
       addToast({
         type: 'error',
         title: 'Erro ao atualizar hábito',
-        description: 'Não foi possível atualizar o hábito. Tente novamente.',
+        description: getErrorMessage(err),
       });
     }
   };

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Loader2, RotateCcw, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,8 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { LoadingHabitsList } from '@/components/shared/loading';
 import { ErrorState, EmptyState } from '@/components/shared/error-state';
-import { useHabits, useArchiveHabit } from '@/hooks/useHabits';
+import { useHabits, useArchiveHabit, useRestoreHabit } from '@/hooks/useHabits';
+import { getErrorMessage } from '@/lib/api/errors';
 import { useToast } from '@/components/ui/toast';
 import { Habit, FrequencyType } from '@/lib/types/habit';
 import { cn } from '@/lib/utils';
@@ -39,11 +40,13 @@ function getFrequencyLabel(habit: Habit): string {
 
 interface HabitListItemProps {
   habit: Habit;
-  onArchive: () => void;
-  isArchiving: boolean;
+  onArchive?: () => void;
+  isArchiving?: boolean;
+  onRestore?: () => void;
+  isRestoring?: boolean;
 }
 
-function HabitListItem({ habit, onArchive, isArchiving }: HabitListItemProps) {
+function HabitListItem({ habit, onArchive, isArchiving = false, onRestore, isRestoring = false }: HabitListItemProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const router = useRouter();
 
@@ -98,6 +101,23 @@ function HabitListItem({ habit, onArchive, isArchiving }: HabitListItemProps) {
                 </Button>
               </div>
             )}
+
+            {!habit.isActive && onRestore && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onRestore}
+                disabled={isRestoring}
+                className="shrink-0"
+              >
+                {isRestoring ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                )}
+                Restaurar
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -122,7 +142,7 @@ function HabitListItem({ habit, onArchive, isArchiving }: HabitListItemProps) {
             <Button
               variant="destructive"
               onClick={() => {
-                onArchive();
+                onArchive?.();
                 setShowDeleteDialog(false);
               }}
               disabled={isArchiving}
@@ -150,8 +170,11 @@ export function HabitList() {
     refetch: refetchAll 
   } = useHabits(false);
   const archiveHabit = useArchiveHabit();
+  const restoreHabit = useRestoreHabit();
   const { addToast } = useToast();
+  const router = useRouter();
   const [archivingId, setArchivingId] = useState<string | null>(null);
+  const [restoringId, setRestoringId] = useState<string | null>(null);
 
   const archivedHabits = allHabits?.filter(h => !h.isActive) || [];
 
@@ -164,14 +187,34 @@ export function HabitList() {
         title: 'Hábito arquivado',
         description: 'O hábito foi arquivado com sucesso.',
       });
-    } catch {
+    } catch (err) {
       addToast({
         type: 'error',
         title: 'Erro ao arquivar',
-        description: 'Não foi possível arquivar o hábito.',
+        description: getErrorMessage(err),
       });
     } finally {
       setArchivingId(null);
+    }
+  };
+
+  const handleRestore = async (habitId: string) => {
+    setRestoringId(habitId);
+    try {
+      await restoreHabit.mutateAsync(habitId);
+      addToast({
+        type: 'success',
+        title: 'Hábito restaurado',
+        description: 'O hábito voltou para a lista de ativos.',
+      });
+    } catch (err) {
+      addToast({
+        type: 'error',
+        title: 'Erro ao restaurar',
+        description: getErrorMessage(err),
+      });
+    } finally {
+      setRestoringId(null);
     }
   };
 
@@ -222,7 +265,7 @@ export function HabitList() {
             description="Crie seu primeiro hábito para começar a acompanhar seu progresso diário."
             action={{
               label: 'Criar hábito',
-              onClick: () => window.location.href = '/habits/new',
+              onClick: () => router.push('/habits/new'),
             }}
           />
         )}
@@ -235,8 +278,8 @@ export function HabitList() {
               <HabitListItem
                 key={habit.id}
                 habit={habit}
-                onArchive={() => {}}
-                isArchiving={false}
+                onRestore={() => handleRestore(habit.id)}
+                isRestoring={restoringId === habit.id}
               />
             ))}
           </div>

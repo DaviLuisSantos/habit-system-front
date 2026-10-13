@@ -13,6 +13,8 @@ interface HabitCardProps {
   checkIn?: CheckIn;
   onCheckIn: (status: CheckInStatus) => void;
   isLoading?: boolean;
+  /** Progresso semanal (somente hábitos XTimesWeek). */
+  weeklyProgress?: { completed: number; target: number };
 }
 
 function getFrequencyLabel(habit: Habit): string {
@@ -61,8 +63,16 @@ export function HabitCard({
   checkIn,
   onCheckIn,
   isLoading,
+  weeklyProgress,
 }: HabitCardProps) {
   const hasCheckIn = !!checkIn;
+  const currentStatus = checkIn?.status;
+
+  // Clicar no status atual não faz nada; outro status cria ou altera o check-in.
+  const handleClick = (status: CheckInStatus) => {
+    if (status === currentStatus) return;
+    onCheckIn(status);
+  };
 
   return (
     <Card className={cn("transition-colors", getCardStyle(checkIn))}>
@@ -94,6 +104,18 @@ export function HabitCard({
               <Badge variant="outline" className="text-xs">
                 {getFrequencyLabel(habit)}
               </Badge>
+              {weeklyProgress && (
+                <span
+                  className={cn(
+                    "font-medium",
+                    weeklyProgress.completed >= weeklyProgress.target
+                      ? "text-success"
+                      : "text-foreground",
+                  )}
+                >
+                  {weeklyProgress.completed}/{weeklyProgress.target} nesta semana
+                </span>
+              )}
             </div>
           </div>
 
@@ -109,8 +131,8 @@ export function HabitCard({
                       ? "success"
                       : "outline"
                   }
-                  onClick={() => onCheckIn(CheckInStatus.Done)}
-                  disabled={hasCheckIn}
+                  onClick={() => handleClick(CheckInStatus.Done)}
+                  aria-pressed={currentStatus === CheckInStatus.Done}
                   title="Feito"
                   className="h-10 !w-full sm:!w-10 sm:px-0"
                 >
@@ -124,8 +146,8 @@ export function HabitCard({
                       ? "warning"
                       : "outline"
                   }
-                  onClick={() => onCheckIn(CheckInStatus.Partial)}
-                  disabled={hasCheckIn}
+                  onClick={() => handleClick(CheckInStatus.Partial)}
+                  aria-pressed={currentStatus === CheckInStatus.Partial}
                   title="Parcial"
                   className="h-10 !w-full sm:!w-10 sm:px-0"
                 >
@@ -139,8 +161,8 @@ export function HabitCard({
                       ? "secondary"
                       : "ghost"
                   }
-                  onClick={() => onCheckIn(CheckInStatus.Skipped)}
-                  disabled={hasCheckIn}
+                  onClick={() => handleClick(CheckInStatus.Skipped)}
+                  aria-pressed={currentStatus === CheckInStatus.Skipped}
                   title="Pular"
                   className="h-10 !w-full sm:!w-10 sm:px-0"
                 >

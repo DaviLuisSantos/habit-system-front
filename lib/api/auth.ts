@@ -1,24 +1,22 @@
-import { apiClient } from './client';
+import { apiClient, rawClient } from './client';
+import { clearTokens, getAccessToken, getRefreshToken, setTokens } from './tokens';
 import {
   LoginRequest,
   RegisterRequest,
   AuthResponse,
   UserProfile,
-  RefreshRequest,
-  RefreshResponse,
   ForgotPasswordRequest,
   ResetPasswordRequest,
   VerifyEmailRequest,
   ChangePasswordRequest,
   DeleteAccountRequest,
-  PlanInfo,
 } from '../types/auth';
 
 class AuthService {
   async register(data: RegisterRequest): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/api/auth/register', data);
     if (response.data.accessToken) {
-      this.setTokens(response.data.accessToken, response.data.refreshToken);
+      setTokens(response.data.accessToken, response.data.refreshToken);
     }
     return response.data;
   }
@@ -26,32 +24,13 @@ class AuthService {
   async login(data: LoginRequest): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/api/auth/login', data);
     if (response.data.accessToken) {
-      this.setTokens(response.data.accessToken, response.data.refreshToken);
+      setTokens(response.data.accessToken, response.data.refreshToken);
     }
     return response.data;
   }
 
   async getCurrentUser(): Promise<UserProfile> {
-    const response = await apiClient.get<UserProfile>('/api/auth/me', {
-      headers: { Authorization: `Bearer ${this.getAccessToken()}` },
-    });
-    return response.data;
-  }
-
-  async refreshToken(): Promise<RefreshResponse> {
-    const accessToken = this.getAccessToken();
-    const refreshToken = this.getRefreshToken();
-
-    if (!accessToken || !refreshToken) {
-      throw new Error('No tokens available');
-    }
-
-    const response = await apiClient.post<RefreshResponse>('/api/auth/refresh', {
-      accessToken,
-      refreshToken,
-    });
-
-    this.setTokens(response.data.accessToken, response.data.refreshToken);
+    const response = await apiClient.get<UserProfile>('/api/auth/me');
     return response.data;
   }
 
@@ -67,53 +46,51 @@ class AuthService {
     await apiClient.post('/api/auth/verify-email', data);
   }
 
+  /** Requer autenticação: o backend identifica o usuário pelo token. */
   async resendVerification(): Promise<void> {
     await apiClient.post('/api/auth/resend-verification', {});
   }
 
+  /** O backend revoga todas as sessões e devolve um novo par de tokens para esta. */
   async changePassword(data: ChangePasswordRequest): Promise<void> {
-    await apiClient.put('/api/account/password', data);
+    const response = await apiClient.put<Partial<AuthResponse>>('/api/account/password', data);
+    if (response.data.accessToken && response.data.refreshToken) {
+      setTokens(response.data.accessToken, response.data.refreshToken);
+    }
   }
 
   async deleteAccount(data: DeleteAccountRequest): Promise<void> {
     await apiClient.delete('/api/account', { data });
   }
 
-  async getPlan(): Promise<PlanInfo> {
-    const response = await apiClient.get<PlanInfo>('/api/account/plan');
-    return response.data;
-  }
+  /**
+   * Revoga o refresh token no servidor (melhor esforço) e limpa os tokens locais.
+   * Erros são ignorados: o logout local sempre acontece.
+   */
+  async logout(): Promise<void> {
+    const refreshToken = getRefreshToken();
+    const accessToken = getAccessToken();
 
-  logout(): void {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+    if (refreshToken) {
+      try {
+        await rawClient.post(
+          '/api/auth/logout',
+          { refreshToken },
+          {
+            timeout: 5000,
+            headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+          },
+        );
+      } catch {
+        // melhor esforço
+      }
     }
-  }
 
-  getAccessToken(): string | null {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('accessToken');
-    }
-    return null;
-  }
-
-  getRefreshToken(): string | null {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('refreshToken');
-    }
-    return null;
-  }
-
-  setTokens(accessToken: string, refreshToken: string): void {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-    }
+    clearTokens();
   }
 
   isAuthenticated(): boolean {
-    return !!this.getAccessToken();
+    return !!getAccessToken();
   }
 }
 

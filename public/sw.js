@@ -1,69 +1,90 @@
-const CACHE_NAME = 'habit-system-pwa-v1';
-const APP_SHELL_URLS = [
-  '/',
-  '/dashboard',
-  '/habits',
-  '/analytics',
-  '/settings',
+/* Service worker do Arco.
+ * Ao publicar uma nova versão, atualize CACHE_VERSION (acompanha package.json)
+ * para que os caches antigos sejam descartados no "activate".
+ */
+const CACHE_VERSION = 'arco-v1.0.0';
+const OFFLINE_URL = '/offline.html';
+const PRECACHE_URLS = [
+  OFFLINE_URL,
   '/manifest.webmanifest',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png',
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL_URLS))
+    caches
+      .open(CACHE_VERSION)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) =>
-      Promise.all(
-        cacheNames
-          .filter((cacheName) => cacheName !== CACHE_NAME)
-          .map((cacheName) => caches.delete(cacheName))
+    caches
+      .keys()
+      .then((names) =>
+        Promise.all(names.filter((name) => name !== CACHE_VERSION).map((name) => caches.delete(name)))
       )
-    )
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
+function isCacheable(response) {
+  return response && response.ok && response.type === 'basic';
+}
+
+async function putInCache(request, response) {
+  if (!isCacheable(response)) return;
+  const cache = await caches.open(CACHE_VERSION);
+  await cache.put(request, response);
+}
+
+/** Navegações: rede primeiro; offline → versão em cache da página → página offline. */
+async function handleNavigation(event) {
+  try {
+    const response = await fetch(event.request);
+    event.waitUntil(putInCache(event.request, response.clone()));
+    return response;
+  } catch {
+    const cached = await caches.match(event.request);
+    if (cached) return cached;
+    const offline = await caches.match(OFFLINE_URL);
+    return offline || Response.error();
+  }
+}
+
+/** Assets estáticos versionados: cache primeiro. */
+async function handleStatic(event) {
+  const cached = await caches.match(event.request);
+  if (cached) return cached;
+  const response = await fetch(event.request);
+  event.waitUntil(putInCache(event.request, response.clone()));
+  return response;
+}
+
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
+  const { request } = event;
+  if (request.method !== 'GET') return;
 
-  const requestUrl = new URL(event.request.url);
+  const url = new URL(request.url);
 
-  if (requestUrl.origin !== self.location.origin) {
+  // Nunca interceptar/cachear requisições de outra origem (inclui a API) nem rotas /api.
+  if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith('/api/')) return;
+
+  if (request.mode === 'navigate') {
+    event.respondWith(handleNavigation(event));
     return;
   }
 
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-          return response;
-        })
-        .catch(async () => {
-          const cachedResponse = await caches.match(event.request);
-          return cachedResponse || caches.match('/dashboard');
-        })
-    );
-    return;
-  }
+  const isStaticAsset =
+    url.pathname.startsWith('/_next/static/') ||
+    /\.(?:png|ico|svg|webp|woff2?)$/.test(url.pathname);
 
-  if (requestUrl.pathname.startsWith('/_next/') || requestUrl.pathname.startsWith('/icons/')) {
-    event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) return cachedResponse;
-
-        return fetch(event.request).then((response) => {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-          return response;
-        });
-      })
-    );
+  if (isStaticAsset) {
+    event.respondWith(handleStatic(event));
   }
 });

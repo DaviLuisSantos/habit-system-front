@@ -67,3 +67,18 @@ export function useArchiveHabit() {
     },
   });
 }
+
+export function useRestoreHabit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await habitsApi.restore(id);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['habits'] });
+      queryClient.invalidateQueries({ queryKey: ['scores'] });
+    },
+  });
+}

@@ -7,6 +7,16 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PublicOnlyRoute } from '@/components/shared/public-only-route';
+import { getErrorMessage } from '@/lib/api/errors';
+import { getNextFromLocation } from '@/lib/utils/redirect';
+
+function getBrowserTimezone(): string | undefined {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -28,22 +38,18 @@ export default function RegisterPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError('A senha deve ter no mínimo 6 caracteres');
+    if (password.length < 8) {
+      setError('A senha deve ter no mínimo 8 caracteres');
       return;
     }
 
     setLoading(true);
 
     try {
-      await register({ name, email, password, timezone: 'America/Sao_Paulo' });
-      router.push('/dashboard');
+      await register({ name, email, password, timezone: getBrowserTimezone() });
+      router.replace(getNextFromLocation() ?? '/dashboard');
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Falha no cadastro. Tente novamente.');
-      }
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -87,7 +93,7 @@ export default function RegisterPage() {
 
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Email
+                  E-mail
                 </label>
                 <Input
                   id="email"
@@ -112,12 +118,13 @@ export default function RegisterPage() {
                   type="password"
                   autoComplete="new-password"
                   required
+                  minLength={8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="w-full"
                 />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Mínimo de 6 caracteres</p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Mínimo de 8 caracteres</p>
               </div>
 
               <div>

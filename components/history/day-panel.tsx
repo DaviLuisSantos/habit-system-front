@@ -10,13 +10,15 @@ import { ErrorState } from '@/components/shared/error-state';
 import { useCheckInsByDateRange, useCreateCheckIn, useUpdateCheckIn } from '@/hooks/useCheckIns';
 import { useToast } from '@/components/ui/toast';
 import { Habit, FrequencyType } from '@/lib/types/habit';
-import { CheckInStatus } from '@/lib/types/checkin';
+import { CheckIn, CheckInStatus } from '@/lib/types/checkin';
+import { getErrorMessage } from '@/lib/api/errors';
+import { getLocalDateString } from '@/lib/utils';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 /**
  * Mantém o mesmo comportamento do today-checkins.tsx:
- * usa getDay() (0=Dom … 6=Sáb) e frequencyDays do backend (1=Seg … 7=Dom).
+ * getDay() e frequencyDays usam a mesma convenção (0=Dom … 6=Sáb).
  * Hábitos XTimesWeek são exibidos todos os dias e o usuário decide.
  */
 function isExpectedOn(habit: Habit, dayOfWeek: number): boolean {
@@ -67,31 +69,47 @@ export function DayPanel({ date, habits }: DayPanelProps) {
 
   // ── handlers ──────────────────────────────────────────────────────────────
 
+  // O backend rejeita check-ins em datas futuras; nunca permitir pela UI.
+  const isFuture = date > getLocalDateString();
+
   const handleCreate = async (habitId: string, status: CheckInStatus) => {
+    if (isFuture) return;
     setLoadingHabitId(habitId);
     try {
       await createCheckIn.mutateAsync({ habitId, date, status });
       addToast({ type: 'success', title: 'Check-in registrado!' });
-    } catch {
-      addToast({ type: 'error', title: 'Erro ao registrar check-in' });
+    } catch (err) {
+      addToast({ type: 'error', title: 'Erro ao registrar check-in', description: getErrorMessage(err) });
+      refetch();
     } finally {
       setLoadingHabitId(null);
     }
   };
 
-  const handleUpdate = async (checkInId: string, habitId: string, status: CheckInStatus) => {
+  const handleUpdate = async (checkIn: CheckIn, habitId: string, status: CheckInStatus) => {
+    if (isFuture) return;
     setLoadingHabitId(habitId);
     try {
-      await updateCheckIn.mutateAsync({ id: checkInId, data: { status } });
+      await updateCheckIn.mutateAsync({ id: checkIn.id, data: { status, note: checkIn.note } });
       addToast({ type: 'success', title: 'Check-in atualizado!' });
-    } catch {
-      addToast({ type: 'error', title: 'Erro ao atualizar check-in' });
+    } catch (err) {
+      addToast({ type: 'error', title: 'Erro ao atualizar check-in', description: getErrorMessage(err) });
     } finally {
       setLoadingHabitId(null);
     }
   };
 
   // ── render ────────────────────────────────────────────────────────────────
+
+  if (isFuture) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center text-muted-foreground text-sm">
+          Não é possível registrar check-ins em datas futuras.
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading) return <LoadingHabitsList />;
 
@@ -123,7 +141,7 @@ export function DayPanel({ date, habits }: DayPanelProps) {
               habit={habit}
               checkIn={checkInsMap.get(habit.id)}
               onCreateCheckIn={(status) => handleCreate(habit.id, status)}
-              onUpdateCheckIn={(id, status) => handleUpdate(id, habit.id, status)}
+              onUpdateCheckIn={(ci, status) => handleUpdate(ci, habit.id, status)}
               isLoading={loadingHabitId === habit.id}
             />
           ))}
@@ -148,7 +166,7 @@ export function DayPanel({ date, habits }: DayPanelProps) {
                   habit={habit}
                   checkIn={ci}
                   onCreateCheckIn={(status) => handleCreate(habit.id, status)}
-                  onUpdateCheckIn={(id, status) => handleUpdate(id, habit.id, status)}
+                  onUpdateCheckIn={(checkIn, status) => handleUpdate(checkIn, habit.id, status)}
                   isLoading={loadingHabitId === habit.id}
                 />
               );

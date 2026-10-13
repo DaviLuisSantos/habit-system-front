@@ -5,6 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Arco',
     short_name: 'Arco',
     description: 'Acompanhe seus hábitos e check-ins diários.',
+    lang: 'pt-BR',
     start_url: '/dashboard',
     scope: '/',
     display: 'standalone',
@@ -13,19 +14,19 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#0a1628',
     icons: [
       {
-        src: '/icone.png',
+        src: '/icon-192.png',
         sizes: '192x192',
         type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/icone.png',
+        src: '/icon-512.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/icone.png',
+        src: '/icon-maskable-512.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'maskable',

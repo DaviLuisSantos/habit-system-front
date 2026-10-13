@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
@@ -12,13 +11,12 @@ import { useToast } from '@/components/ui/toast';
 import { HabitFormData } from '@/lib/validations/habit';
 import { CreateHabitDto } from '@/lib/types/habit';
 import { ProtectedRoute } from '@/components/shared/protected-route';
-import { UpgradePrompt } from '@/components/shared/upgrade-prompt';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function NewHabitPage() {
   const router = useRouter();
   const createHabit = useCreateHabit();
   const { addToast } = useToast();
-  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const handleSubmit = async (data: HabitFormData) => {
     try {
@@ -42,20 +40,10 @@ export default function NewHabitPage() {
 
       router.push('/habits');
     } catch (err: unknown) {
-      // Detect free plan limit error from backend
-      const message =
-        err instanceof Error ? err.message :
-        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? '';
-
-      if (message.toLowerCase().includes('free plan') || message.toLowerCase().includes('5 active')) {
-        setShowUpgrade(true);
-        return;
-      }
-
       addToast({
         type: 'error',
         title: 'Erro ao criar hábito',
-        description: 'Não foi possível criar o hábito. Tente novamente.',
+        description: getErrorMessage(err),
       });
     }
   };
@@ -92,8 +80,6 @@ export default function NewHabitPage() {
             </CardContent>
           </Card>
         </div>
-
-        <UpgradePrompt open={showUpgrade} onOpenChange={setShowUpgrade} />
       </AppLayout>
     </ProtectedRoute>
   );

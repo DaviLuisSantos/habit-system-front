@@ -41,7 +41,7 @@ export function ScoreWidget({ score, previousScore }: ScoreWidgetProps) {
   return (
     <Card className={cn('overflow-hidden', getBackgroundGradient(percentage))}>
       <CardContent className="p-6 text-center">
-        <p className="text-sm font-medium text-muted-foreground mb-2">Score de Hoje</p>
+        <p className="text-sm font-medium text-muted-foreground mb-2">Pontuação de hoje</p>
         
         <div className="flex items-center justify-center gap-2 mb-2">
           <span className={cn('text-5xl font-bold', getScoreColor(percentage))}>

@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: Home },
+  { href: '/dashboard', label: 'Início', icon: Home },
   { href: '/habits', label: 'Hábitos', icon: ListTodo },
   { href: '/analytics', label: 'Análise', icon: BarChart3 },
   { href: '/history', label: 'Histórico', icon: CalendarDays },
@@ -27,7 +27,7 @@ export function Sidebar() {
         <Link href="/dashboard" className="flex items-center gap-3 group">
           <div className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center bg-primary/10 shrink-0">
             <Image
-              src="/icone.png"
+              src="/icon-192.png"
               alt="Arco"
               width={36}
               height={36}
@@ -36,7 +36,7 @@ export function Sidebar() {
           </div>
           <div>
             <span className="font-bold text-lg text-foreground leading-none">Arco</span>
-            <p className="text-xs text-muted-foreground leading-none mt-0.5">Habit Tracker</p>
+            <p className="text-xs text-muted-foreground leading-none mt-0.5">Rastreador de hábitos</p>
           </div>
         </Link>
       </div>

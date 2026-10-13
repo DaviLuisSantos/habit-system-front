@@ -13,8 +13,8 @@ export function PwaRegister() {
 
     if (process.env.NODE_ENV !== 'production' && isLocalhost) return;
 
-    navigator.serviceWorker.register('/sw.js').catch((error) => {
-      console.error('Service worker registration failed:', error);
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // Sem service worker o app continua funcionando normalmente (apenas sem offline).
     });
   }, []);
 

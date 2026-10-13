@@ -26,7 +26,7 @@ export default function DashboardPage() {
         {/* Page header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+            <h1 className="text-2xl font-bold text-foreground">Início</h1>
             <p className="text-muted-foreground capitalize">{today}</p>
           </div>
         </div>
@@ -39,8 +39,8 @@ export default function DashboardPage() {
               <LoadingScoreWidget />
             ) : scoreError ? (
               <ErrorState
-                title="Erro ao carregar score"
-                message="Não foi possível carregar seu score de hoje."
+                title="Erro ao carregar pontuação"
+                message="Não foi possível carregar sua pontuação de hoje."
                 onRetry={() => refetchScore()}
               />
             ) : todayScore ? (

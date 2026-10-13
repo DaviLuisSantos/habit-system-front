@@ -30,16 +30,6 @@ export interface UserProfile {
   isEmailVerified: boolean;
 }
 
-export interface RefreshRequest {
-  accessToken: string;
-  refreshToken: string;
-}
-
-export interface RefreshResponse {
-  accessToken: string;
-  refreshToken: string;
-}
-
 export interface ForgotPasswordRequest {
   email: string;
 }
@@ -66,5 +56,5 @@ export interface PlanInfo {
   plan: Plan;
   isEmailVerified: boolean;
   activeHabits: number;
-  habitLimit: number; // -1 = unlimited
+  habitLimit: number | null; // null = ilimitado
 }

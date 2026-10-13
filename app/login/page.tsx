@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PublicOnlyRoute } from '@/components/shared/public-only-route';
+import { getErrorMessage } from '@/lib/api/errors';
+import { getNextFromLocation } from '@/lib/utils/redirect';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -24,13 +26,9 @@ export default function LoginPage() {
 
     try {
       await login({ email, password });
-      router.push('/dashboard');
+      router.replace(getNextFromLocation() ?? '/dashboard');
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Falha no login. Verifique suas credenciais.');
-      }
+      setError(getErrorMessage(err, { 401: 'E-mail ou senha incorretos.' }));
     } finally {
       setLoading(false);
     }
@@ -57,7 +55,7 @@ export default function LoginPage() {
             <div className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Email
+                  E-mail
                 </label>
                 <Input
                   id="email"

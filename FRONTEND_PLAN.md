@@ -1,3 +1,5 @@
+> **Documento histórico.** Este foi o plano inicial da Fase 2 e não reflete o estado atual do projeto (v1.0.0). Veja `README.md` e `PROJECT_CONTEXT.md`.
+
 # Plano de Implementação - Habit System Frontend (Fase 2)
 
 ## 📋 Objetivo

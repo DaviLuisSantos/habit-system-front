@@ -13,24 +13,56 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const APP_DESCRIPTION =
+  'Arco é um rastreador de hábitos: registre check-ins diários, acompanhe sua pontuação e veja sua evolução.';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
+
 export const metadata: Metadata = {
-  title: "Arco",
-  description: "Acompanhe seus hábitos e check-ins diários.",
+  ...(SITE_URL ? { metadataBase: new URL(SITE_URL) } : {}),
+  applicationName: 'Arco',
+  title: {
+    default: 'Arco',
+    template: '%s · Arco',
+  },
+  description: APP_DESCRIPTION,
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/icone.svg',
-    shortcut: '/icone.svg',
-    apple: '/icone.svg',
+    icon: [
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   appleWebApp: {
     capable: true,
     title: 'Arco',
     statusBarStyle: 'black-translucent',
   },
+  openGraph: {
+    type: 'website',
+    locale: 'pt_BR',
+    siteName: 'Arco',
+    title: 'Arco',
+    description: APP_DESCRIPTION,
+    ...(SITE_URL ? { images: [{ url: '/icon-512.png', width: 512, height: 512, alt: 'Arco' }] } : {}),
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Arco',
+    description: APP_DESCRIPTION,
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0a1628',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a1628' },
+  ],
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',

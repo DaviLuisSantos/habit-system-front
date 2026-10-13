@@ -16,4 +16,7 @@ export const habitsApi = {
 
   archive: (id: string) =>
     apiClient.delete(`/api/habits/${id}`),
+
+  restore: (id: string) =>
+    apiClient.post<Habit>(`/api/habits/${id}/restore`),
 };

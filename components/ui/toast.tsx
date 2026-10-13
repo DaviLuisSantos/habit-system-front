@@ -98,6 +98,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
       </div>
       <button
         onClick={onClose}
+        aria-label="Fechar"
         className="shrink-0 rounded-md p-1 text-muted-foreground hover:text-foreground"
       >
         <X className="h-4 w-4" />

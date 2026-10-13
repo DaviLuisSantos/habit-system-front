@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { authService } from '@/lib/api/auth';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -20,8 +21,8 @@ export default function ForgotPasswordPage() {
     try {
       await authService.forgotPassword({ email });
       setSent(true);
-    } catch {
-      setError('Ocorreu um erro. Tente novamente.');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

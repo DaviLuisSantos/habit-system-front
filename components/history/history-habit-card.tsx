@@ -14,7 +14,7 @@ interface HistoryHabitCardProps {
   habit: Habit;
   checkIn?: CheckIn;
   onCreateCheckIn: (status: CheckInStatus) => void;
-  onUpdateCheckIn: (id: string, newStatus: CheckInStatus) => void;
+  onUpdateCheckIn: (checkIn: CheckIn, newStatus: CheckInStatus) => void;
   isLoading?: boolean;
 }
 
@@ -69,7 +69,7 @@ export function HistoryHabitCard({
 
   const handleConfirm = () => {
     if (pendingStatus && checkIn) {
-      onUpdateCheckIn(checkIn.id, pendingStatus);
+      onUpdateCheckIn(checkIn, pendingStatus);
     }
     setPendingStatus(null);
   };

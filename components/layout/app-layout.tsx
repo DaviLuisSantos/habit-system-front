@@ -2,6 +2,7 @@
 
 import { Sidebar } from './sidebar';
 import { BottomNav } from './bottom-nav';
+import { EmailVerificationBanner } from './email-verification-banner';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -20,6 +21,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
           </header>
         )}
         <div className="p-4 md:p-6">
+          <EmailVerificationBanner />
           {children}
         </div>
       </main>

@@ -6,7 +6,7 @@ import { Home, ListTodo, BarChart3, CalendarDays, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: '/dashboard', label: 'Home', icon: Home },
+  { href: '/dashboard', label: 'Início', icon: Home },
   { href: '/habits', label: 'Hábitos', icon: ListTodo },
   { href: '/analytics', label: 'Análise', icon: BarChart3 },
   { href: '/history', label: 'Histórico', icon: CalendarDays },

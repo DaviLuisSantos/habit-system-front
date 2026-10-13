@@ -1,23 +1,29 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { GitBranch, Heart, Monitor, Moon, Sun, User, LogOut, Lock, Trash2, Crown, ShieldCheck, ShieldOff } from 'lucide-react';
+import { Heart, Monitor, Moon, Sun, User, LogOut, Lock, Trash2, ShieldCheck, ShieldOff } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { ProtectedRoute } from '@/components/shared/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { authService } from '@/lib/api/auth';
+import { getErrorMessage } from '@/lib/api/errors';
+import { useToast } from '@/components/ui/toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
+const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? '1.0.0';
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const currentTheme = theme ?? 'system';
-  const { user, logout, refreshUser } = useAuth();
+  const { user, logout } = useAuth();
+  const { addToast } = useToast();
 
   // Change password state
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -57,8 +63,14 @@ export default function SettingsPage() {
       setNewPassword('');
       setConfirmNewPassword('');
       setShowChangePassword(false);
-    } catch {
-      setChangePwError('Senha atual incorreta ou erro ao alterar.');
+    } catch (err) {
+      setChangePwError(
+        getErrorMessage(err, {
+          400: 'Senha atual incorreta ou nova senha inválida.',
+          401: 'Senha atual incorreta.',
+          validation: 'Senha atual incorreta ou nova senha inválida.',
+        }),
+      );
     } finally {
       setChangePwLoading(false);
     }
@@ -70,9 +82,15 @@ export default function SettingsPage() {
     setDeleteLoading(true);
     try {
       await authService.deleteAccount({ password: deletePassword });
-      logout();
-    } catch {
-      setDeleteError('Senha incorreta. Tente novamente.');
+      await logout();
+    } catch (err) {
+      setDeleteError(
+        getErrorMessage(err, {
+          400: 'Senha incorreta. Tente novamente.',
+          401: 'Senha incorreta. Tente novamente.',
+          validation: 'Senha incorreta. Tente novamente.',
+        }),
+      );
     } finally {
       setDeleteLoading(false);
     }
@@ -83,8 +101,17 @@ export default function SettingsPage() {
     try {
       await authService.resendVerification();
       setResendSent(true);
-    } catch {
-      // noop
+      addToast({
+        type: 'success',
+        title: 'E-mail enviado',
+        description: 'Verifique sua caixa de entrada.',
+      });
+    } catch (err) {
+      addToast({
+        type: 'error',
+        title: 'Não foi possível reenviar',
+        description: getErrorMessage(err),
+      });
     } finally {
       setResendLoading(false);
     }
@@ -151,7 +178,7 @@ export default function SettingsPage() {
 
                 <div className="pt-2 border-t border-border space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Timezone</span>
+                    <span className="text-muted-foreground">Fuso horário</span>
                     <span className="text-foreground">{user.timezone}</span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -165,47 +192,11 @@ export default function SettingsPage() {
                   variant="destructive"
                   size="sm"
                   className="w-full mt-4"
-                  onClick={logout}
+                  onClick={() => logout()}
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   Sair da Conta
                 </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Plan */}
-          {user && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Crown className="h-5 w-5 text-yellow-500" />
-                  Plano
-                </CardTitle>
-                <CardDescription>Seu plano atual e limites</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-foreground font-medium">
-                    {user.plan === 'Pro' ? 'Arco Pro' : 'Arco Free'}
-                  </span>
-                  {user.plan === 'Pro' ? (
-                    <Badge className="bg-yellow-500 text-white hover:bg-yellow-600">Pro</Badge>
-                  ) : (
-                    <Badge variant="secondary">Free</Badge>
-                  )}
-                </div>
-                {user.plan === 'Free' && (
-                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-4 py-3 text-sm text-blue-800 dark:text-blue-200">
-                    <p className="font-medium">Plano Free: até 5 hábitos ativos</p>
-                    <p className="mt-1 text-blue-600 dark:text-blue-300">
-                      Faça upgrade para o Pro e tenha hábitos ilimitados.
-                    </p>
-                  </div>
-                )}
-                {user.plan === 'Pro' && (
-                  <p className="text-sm text-muted-foreground">Hábitos ilimitados e todos os recursos premium.</p>
-                )}
               </CardContent>
             </Card>
           )}
@@ -273,7 +264,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div className="flex gap-2">
-                    <Button type="submit" size="sm" disabled={changePwLoading} className="bg-blue-600 hover:bg-blue-700 text-white">
+                    <Button type="submit" size="sm" disabled={changePwLoading}>
                       {changePwLoading ? 'Salvando...' : 'Salvar'}
                     </Button>
                     <Button
@@ -330,48 +321,24 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <img
-                  src="/icone.svg"
+                <Image
+                  src="/icon-192.png"
                   alt="Arco"
+                  width={48}
+                  height={48}
                   className="w-12 h-12 rounded-xl"
                 />
                 <div>
                   <CardTitle>Arco</CardTitle>
-                  <CardDescription>Sistema de rastreamento de hábitos</CardDescription>
+                  <CardDescription>Acompanhe seus hábitos, um dia de cada vez</CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between py-2 border-b border-border">
-                <span className="text-muted-foreground">Versão</span>
-                <Badge variant="secondary">1.3.0</Badge>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border">
-                <span className="text-muted-foreground">Frontend</span>
-                <span className="text-foreground">Next.js 16 + React 19</span>
-              </div>
+            <CardContent>
               <div className="flex items-center justify-between py-2">
-                <span className="text-muted-foreground">Backend</span>
-                <span className="text-foreground">.NET 9 + SQLite</span>
+                <span className="text-muted-foreground">Versão</span>
+                <Badge variant="secondary">{APP_VERSION}</Badge>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Links */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Links</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
-              >
-                <GitBranch className="h-5 w-5 text-muted-foreground" />
-                <span className="text-foreground">Repositório no GitHub</span>
-              </a>
             </CardContent>
           </Card>
 

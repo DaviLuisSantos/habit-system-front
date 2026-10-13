@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -9,7 +10,27 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 };
 
+const DISMISS_KEY = 'arco:install-banner-dismissed';
+const HIDDEN_ROUTES = ['/login', '/register'];
+
+function readDismissed(): boolean {
+  try {
+    return window.localStorage.getItem(DISMISS_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function persistDismissed(): void {
+  try {
+    window.localStorage.setItem(DISMISS_KEY, '1');
+  } catch {
+    // ignore
+  }
+}
+
 export function InstallBanner() {
+  const pathname = usePathname();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isIos, setIsIos] = useState(false);
@@ -19,7 +40,7 @@ export function InstallBanner() {
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setDeferredPrompt(event as BeforeInstallPromptEvent);
-      setIsVisible(true);
+      if (!readDismissed()) setIsVisible(true);
     };
 
     const onAppInstalled = () => {
@@ -39,7 +60,7 @@ export function InstallBanner() {
       setIsInstalled(standalone || iosStandalone);
       setIsIos(iosDevice && !standalone && !iosStandalone);
 
-      if (iosDevice && !standalone && !iosStandalone) {
+      if (iosDevice && !standalone && !iosStandalone && !readDismissed()) {
         setIsVisible(true);
       }
     });
@@ -67,7 +88,15 @@ export function InstallBanner() {
     setIsVisible(false);
   };
 
+  const handleDismiss = () => {
+    persistDismissed();
+    setIsVisible(false);
+  };
+
   if (!isVisible || isInstalled) return null;
+  if (pathname && HIDDEN_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`))) {
+    return null;
+  }
 
   return (
     <div
@@ -88,7 +117,7 @@ export function InstallBanner() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setIsVisible(false)}
+            onClick={handleDismiss}
             className={cn(!deferredPrompt && 'flex-1')}
           >
             Depois

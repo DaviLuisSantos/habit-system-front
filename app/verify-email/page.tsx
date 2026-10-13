@@ -6,11 +6,14 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { authService } from '@/lib/api/auth';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { useToast } from '@/components/ui/toast';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
   const { user, refreshUser } = useAuth();
+  const { addToast } = useToast();
 
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'resent'>('loading');
   const [resending, setResending] = useState(false);
@@ -37,8 +40,12 @@ function VerifyEmailContent() {
     try {
       await authService.resendVerification();
       setStatus('resent');
-    } catch {
-      // noop
+    } catch (err) {
+      addToast({
+        type: 'error',
+        title: 'Não foi possível reenviar',
+        description: getErrorMessage(err),
+      });
     } finally {
       setResending(false);
     }
@@ -47,7 +54,7 @@ function VerifyEmailContent() {
   if (status === 'loading') {
     return (
       <div className="text-center space-y-2">
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
         <p className="text-sm text-gray-600 dark:text-gray-400">Verificando...</p>
       </div>
     );
@@ -117,7 +124,7 @@ export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 px-4">
